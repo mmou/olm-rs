@@ -20,10 +20,12 @@ use crate::errors;
 use crate::errors::OlmGroupSessionError;
 use olm_sys;
 use ring::rand::{SecureRandom, SystemRandom};
+use std::cmp::Ordering;
 use std::ffi::CStr;
 
 /// An out-bound group session is responsible for encrypting outgoing
 /// communication in a Megolm session.
+#[derive(Eq)]
 pub struct OlmOutboundGroupSession {
     pub group_session_ptr: *mut olm_sys::OlmOutboundGroupSession,
 }
@@ -336,5 +338,24 @@ impl Drop for OlmOutboundGroupSession {
             olm_sys::olm_clear_outbound_group_session(self.group_session_ptr);
             Box::from_raw(self.group_session_ptr);
         }
+    }
+}
+
+/// orders by unicode code points (which is a superset of ASCII)
+impl Ord for OlmOutboundGroupSession {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.session_id().cmp(&other.session_id())
+    }
+}
+
+impl PartialOrd for OlmOutboundGroupSession {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for OlmOutboundGroupSession {
+    fn eq(&self, other: &Self) -> bool {
+        self.session_id() == other.session_id()
     }
 }
