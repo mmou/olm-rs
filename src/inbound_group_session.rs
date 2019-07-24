@@ -19,12 +19,10 @@
 use crate::errors;
 use crate::errors::OlmGroupSessionError;
 use olm_sys;
-use std::cmp::Ordering;
 use std::ffi::CStr;
 
 /// An in-bound group session is responsible for decrypting incoming
 /// communication in a Megolm session.
-#[derive(Eq)]
 pub struct OlmInboundGroupSession {
     pub group_session_ptr: *mut olm_sys::OlmInboundGroupSession,
 }
@@ -398,24 +396,5 @@ impl Drop for OlmInboundGroupSession {
             olm_sys::olm_clear_inbound_group_session(self.group_session_ptr);
             Box::from_raw(self.group_session_ptr);
         }
-    }
-}
-
-/// orders by unicode code points (which is a superset of ASCII)
-impl Ord for OlmInboundGroupSession {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.session_id().cmp(&other.session_id())
-    }
-}
-
-impl PartialOrd for OlmInboundGroupSession {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for OlmInboundGroupSession {
-    fn eq(&self, other: &Self) -> bool {
-        self.session_id() == other.session_id()
     }
 }
